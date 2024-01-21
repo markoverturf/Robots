@@ -3,21 +3,10 @@ import time
 import os
 import keyboard
 
-os.system("pip3 install keyboard")
-
-board = pyfirmata.Arduino('COM3')
-while True:
-    if keyboard.is_pressed('space'):
-        board.digital[13].write(1)
-        time.sleep(0.1)
-    else:
-        board.digital[13].write(0)
-        time.sleep(0.1)
-
-in8 = 8
-in9 = 9
-in10 = 10
-in11 = 11
+int1 = 8
+int2 = 9
+int3 = 10
+int4 = 11
 
 # careful lowering this, at some point you run into the mechanical limitation of how quick your motor can move
 step_sleep = 0.002
@@ -40,30 +29,32 @@ motor_pins = [in8,in9,in10,in11]
 motor_step_counter = 0 ;
 
 def rest():
-    board.digital[in8].write(0)
-    board.digital[in9].write(0)
-    board.digital[in10].write(0)
-    board.digital[in11].write(0)
+    board.digital[int1].write(0)
+    board.digital[int2].write(0)
+    board.digital[int3].write(0)
+    board.digital[int4].write(0)
 
 # the meat
 try:
     i = 0
     for i in range(step_count):
-        for pin in range(0, len(motor_pins)):
-            GPIO.output( motor_pins[pin], step_sequence[motor_step_counter][pin] )
+        board.digital[int1].write(step_sequence[motor_step_counter][0])
+        board.digital[int2].write(step_sequence[motor_step_counter][1])
+        board.digital[int3].write(step_sequence[motor_step_counter][2])
+        board.digital[int4].write(step_sequence[motor_step_counter][3])
         if direction==True:
             motor_step_counter = (motor_step_counter - 1) % 8
         elif direction==False:
             motor_step_counter = (motor_step_counter + 1) % 8
         else: # defensive programming
-            print( "uh oh... direction should *always* be either True or False" )
-            cleanup()
-            exit( 1 )
-        time.sleep( step_sleep )
+            print( "Something went wrong." )
+            rest()
+            exit(1)
+        time.sleep(step_sleep)
 
 except KeyboardInterrupt:
-    cleanup()
-    exit( 1 )
+    rest()
+    exit(1)
 
-cleanup()
-exit( 0 )
+rest()
+exit(0)
