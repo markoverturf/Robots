@@ -5,6 +5,7 @@ from tkinter import *
 import threading
 from IPython.display import clear_output
 import asyncio
+from types import SimpleNamespace
 
 #### Initialize Variables ####
 int1 = 8
@@ -82,6 +83,8 @@ def DriveMotor():
     global step_count
     for i in range(step_count):
         clear_output(wait=True)
+        if stop_event.is_set():
+            break
         pinout1 = step_sequence[motor_step_counter][0]
         pinout2 = step_sequence[motor_step_counter][1]
         pinout3 = step_sequence[motor_step_counter][2]
@@ -110,19 +113,23 @@ def exit():
     pinout2 = 0
     pinout3 = 0
     pinout4 = 0
-    t1.join()
+    stop_event.set()
     root.destroy()
-    exit(0)
     
 
 #### Start Motor Thread ####
-
+stop_event = threading.Event()
 t1 = threading.Thread(target=DriveMotor)
 t1.start()
 
 #### Load Tkinter Form ####
 
 root = Tk()
+
+#root.overrideredirect(1) # Remove shadow & drag bar. Note: Must be used before wm calls otherwise these will be removed.
+#root.call("wm", "attributes", ".", "-topmost", True) # Always keep window on top of others
+#root.call("wm", "attributes", ".", "-disabled", "0.9") # Toggles modified state of the close-window icon.
+
 frame = Frame(root)
 
 root.rowconfigure(0, weight=1)
@@ -142,8 +149,8 @@ btnCCW.grid(column=1, row=0, sticky="news")
 btnStartStop = Button(frame, text = "Start", command = StartStop)
 btnStartStop.grid(row=2, columnspan = 2, sticky="news")
 
-btnStartStop = Button(frame, text = "Exit", command = exit)
-btnStartStop.grid(row=3, columnspan = 2, sticky="news")
+btnExit = Button(frame, text = "Exit", command = exit)
+btnExit.grid(row=3, columnspan = 2, sticky="news")
 
 frame.columnconfigure(tuple(range(2)), weight=1)
 frame.rowconfigure(tuple(range(1)), weight=1)
@@ -156,4 +163,3 @@ root.mainloop()
 #### Exit Program ####
 
 rest()
-exit(0)
